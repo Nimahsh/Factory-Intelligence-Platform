@@ -31,6 +31,18 @@ Data-Driven Management is Available
 """,
 unsafe_allow_html=True)
 
+def center_table(df):
+    return (
+        df.style
+        .set_properties(**{'text-align': 'center'})
+        .set_table_styles([
+            {'selector': 'th',
+             'props': [('text-align', 'center')]}
+        ])
+    )
+
+
+
 
 # ---------------- LOAD DATA ---------------- #
 
@@ -97,14 +109,15 @@ Product_map= {
 if Selected_line == "All":
 
     # st.dataframe(df_filtered , hide_index=True)
-    df_filtered = df_filtered[df_filtered["Product"] >= 0]
+    # df_filtered = df_filtered[df_filtered["Product"] >= 0]
     # st.dataframe(df_filtered, hide_index=True)
     df_filtered ["Target Product"] = (df_filtered["Line Speed"] * df_filtered["Time"] * df_filtered["Product Code"].map(lambda x: Product_map[x]["Weight"]))/1000000
     df_filtered ["Production (Ton)"]= (df_filtered["Product"] * (df_filtered["Product Code"].map(lambda x: Product_map[x]["Weight"]))* (df_filtered["Product Code"].map(lambda x: Product_map[x]["Pack"])))/1000000
     # st.dataframe(df_filtered.round(2), hide_index=True)
     df_filtered_Pr = df_filtered.groupby("Line",as_index=False).agg(Total_Time = ("Time" , "sum") ,Total_Plan=("Plan" , "sum") ,Total_ChangePlan=("Change Plan" , "sum"),Total_Production_Ton=("Production (Ton)" , "sum"),Total_Target_Plan=("Target Product" , "sum"))
-    df_filtered_Pr["Plan Coverage"]=df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Plan"]*100
-    df_filtered_Pr["Pr%"] = df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Target_Plan"]*100
+    # st.dataframe(df_filtered_Pr)
+    df_filtered_Pr["Plan Coverage"]=(df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Plan"])*100
+    df_filtered_Pr["Pr%"] = (df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Target_Plan"])*100
     st.subheader("🏭 Factory Overview")
     st.dataframe(df_filtered_Pr.round(2), hide_index=True)
 
@@ -122,8 +135,7 @@ if Selected_line == "All":
 
     k1.metric("Highest Pr", best_line)
     k2.metric("Lowest Pr", Lowest_Pr)
-    k3.metric("Total PR",
-    f"{(df_filtered_Pr['Total_Production_Ton'].sum()/df_filtered_Pr['Total_Target_Plan'].sum())*100:.2f}%")
+    k3.metric("Total PR", f"{(df_filtered_Pr["Total_Production_Ton"].sum()/df_filtered_Pr["Total_Target_Plan"].sum())*100:.2f}%")
     k4.metric("Total Production",f"{df_filtered_Pr['Total_Production_Ton'].sum():.0f}")
 
     st.subheader("🏆 Line Performance Ranking")
@@ -230,23 +242,28 @@ if Selected_line == "All":
 if Selected_line != "All":
 
     Lines_df = df_filtered
-
+    Lines_df["Target Ton"] = (Lines_df["Line Speed"]* Lines_df["Time"]* Lines_df["Product Code"].map(lambda x: Product_map[x]["Weight"])) / 1000000
+    # st.subheader("Nima0")
+    # st.dataframe(Lines_df)
     Line_Plan = Lines_df.groupby("Product Code", as_index=False).agg(Total_Production=("Product", "sum"),Working_Time=("Time", "sum"),Line_Speed=("Line Speed", "mean"),
         Total_Plan=("Plan", "sum"),
-        Total_Chang_Plan=("Change Plan", "sum")
+        Total_Chang_Plan=("Change Plan", "sum"),Total_Target_Plan=("Target Ton", "sum"),
     )
 
+    # st.subheader("Nima1")
+    # st.dataframe(Line_Plan)
     Line_Plan["Product Name"] = Line_Plan["Product Code"].map(lambda x: Product_map.get(x, {}).get("name", "Unknown Product"))
 
     Line_Plan["Production (Ton)"] = (Line_Plan["Total_Production"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Weight"])* Line_Plan["Product Code"].map(lambda x: Product_map[x]["Pack"])) / 1_000_000
 
     Line_Plan["Plan Coverage"] =(Line_Plan["Production (Ton)"] / Line_Plan["Total_Plan"]) * 100
-
+    # st.subheader("Nima2")
+    # st.dataframe(Line_Plan)
 
     # ---------------- SHOW TABLE ---------------- #
     # ---------------- Average Speed Table ---------------- #
 
-    Line_Plan["Pr%"] = (Line_Plan["Production (Ton)"] /((Line_Plan["Working_Time"]*Line_Plan["Line_Speed"]* Line_Plan["Product Code"].map(lambda x: Product_map[x]["Weight"]))/1000000)) * 100
+    Line_Plan["Pr%"] = (Line_Plan["Production (Ton)"] /(Line_Plan["Total_Target_Plan"])) * 100
     Line_Plan["Share%"] = (Line_Plan["Production (Ton)"] / Line_Plan["Production (Ton)"].sum())*100
     col1 = ["Product Name", "Working_Time", "Line_Speed", "Production (Ton)", "Plan Coverage" , "Pr%" , "Share%"]
     display_Line_Plan = Line_Plan[col1]
@@ -298,9 +315,9 @@ if Selected_line != "All":
 
     Line_Shift_in_Month = Line_SpeedDi["Shift"].count()
 
-    x = (Line_Plan["Working_Time"] * Line_Plan["Line_Speed"] * Line_Plan["Product Code"].map(lambda x: Product_map[x]["Weight"]) / 1000000)
-    x = x.sum()
-    Line_PR = (Line_Plan["Production (Ton)"].sum() / x) * 100
+    # x = (Line_Plan["Working_Time"] * Line_Plan["Line_Speed"] * Line_Plan["Product Code"].map(lambda x: Product_map[x]["Weight"]) / 1000000)
+    # x = x.sum()
+    Line_PR = (Line_Plan["Production (Ton)"].sum() / Line_Plan["Total_Target_Plan"].sum())* 100
 
 
     # ---------------- KPI ---------------- #
@@ -309,27 +326,26 @@ if Selected_line != "All":
     total_time = Line_Plan["Working_Time"].sum()
     plan_coverage = (total_ton / total_plan) * 100
 
-
-
-
-    def create_gauge(value, title, max_value=100, threshold=85):
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=value,
-            title={'text': title},
-            gauge={
-                'axis': {'range': [0, max_value]},
-                'bar': {'color': "darkblue"},
-                'steps': [
-                    {'range': [0, 70], 'color': "red"},
-                    {'range': [70, 85], 'color': "yellow"},
-                    {'range': [85, max_value], 'color': "green"}
-                ],
-                'threshold': {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': threshold}
-            }
-        ))
-        fig.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10))
-        return fig
+    # import plotly.graph_objects as go
+    #
+    # def create_gauge(value, title, max_value=100, threshold=85):
+    #     fig = go.Figure(go.Indicator(
+    #         mode="gauge+number+delta",
+    #         value=value,
+    #         title={'text': title},
+    #         gauge={
+    #             'axis': {'range': [0, max_value]},
+    #             'bar': {'color': "darkblue"},
+    #             'steps': [
+    #                 {'range': [0, 70], 'color': "red"},
+    #                 {'range': [70, 85], 'color': "yellow"},
+    #                 {'range': [85, max_value], 'color': "green"}
+    #             ],
+    #             'threshold': {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': threshold}
+    #         }
+    #     ))
+    #     fig.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10))
+    #     return fig
 
 
     # col1, col2, col3, col4 = st.columns(4)
@@ -706,3 +722,4 @@ if Selected_line != "All":
     with st.expander("📋 View Raw Stoppage Data"):
 
         st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+
