@@ -129,7 +129,7 @@ if Selected_line == "All":
 
 
 
-    st.subheader("🏭 Factory Overview")
+    st.subheader("🏭 Production Overview")
     st.dataframe(df_filtered_Pr.round(2), hide_index=True)
 
     best_line = df_filtered_Pr.loc[
