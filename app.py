@@ -65,7 +65,7 @@ def center_table(df):
     )
 
 # ---------------- LOAD DATA ---------------- #
-OEE_loc = r"D:\Python\Python_Project\OEE_Project_Files_2026\FirstSeason2026.xlsx"
+
 @st.cache_data
 def load_data(OEE_loc):
     return pd.read_excel(OEE_loc)
@@ -713,8 +713,8 @@ if Selected_line != "All":
         with col4:
             st.metric("Best Performance",f"{best_product}")
 
-address_code = ("D:\\Python\\Python_Project\\OEE_Project_Files_2026\\Code_map.xlsx")
-df_stoppage = pd.read_excel(address_code)
+
+
 stoppage_map = {
     row["Code"]: {
         "Kind": row["Kind"],
