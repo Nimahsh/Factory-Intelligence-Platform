@@ -9,78 +9,6 @@ OEE_loc = "FirstSeason2026.xlsx"
 address_code = "Code_map.xlsx"
 
 address_code1 = "Kind_map.xlsx"
-#--------------- Titles ----------------#
-st.set_page_config(page_title="OEE Dashboard",layout="wide")
-st.markdown("""
-<div style='text-align:center;padding-bottom:20px;'>
-
-<h1>
-🏭 Manufacturing Intelligence Platform
-</h1>
-
-<p style='font-size:18px;color:#9ca3af'>
-AI Powered Production Analytics
-</p>
-
-<p style='font-size:18px;color:#9ca3af'>
-Data-Driven Management
-</p>
-
-</div>
-""",
-unsafe_allow_html=True)
-
-def center_table(df):
-    return (
-        df.style
-        .set_properties(**{'text-align': 'center'})
-        .set_table_styles([
-            {'selector': 'th',
-             'props': [('text-align', 'center')]}
-        ])
-    )
-
-
-
-
-# ---------------- LOAD DATA ---------------- #
-
-@st.cache_data
-def load_data(OEE_loc):
-    return pd.read_excel(OEE_loc)
-
-df = load_data(OEE_loc)
-
-df["Line"] = df["Line"].astype(str)
-df["Date"] = df["Date"].astype(str)
-# -----------------------------------------------------------------------------
-# ---------------- RAW DATA ---------------- #
-# with st.expander("View Raw Data"):
-#     st.dataframe(df , hide_index=True)
-
-# ----------------Date FILTER ---------------- #
-
-st.sidebar.subheader("Liquid Packaging Team")
-
-all_lines = ["All"] + list(df["Line"].unique())
-
-all_dates = sorted(df["Date"].unique().tolist())
-
-with st.sidebar:
-    st.header("Filters")
-    Selected_line = st.selectbox("Select Line",all_lines)
-
-    date_range = st.select_slider("Set Your Date Range :",options=all_dates,value=(all_dates[0], all_dates[-1]))
-
-start_date, end_date = date_range
-
-if Selected_line == "All":
-    df_filtered = df
-else:
-    df_filtered = df[df["Line"] == Selected_line]
-
-
-df_filtered = df_filtered[(df_filtered["Date"] >= start_date) &(df_filtered["Date"] <= end_date)]
 
 
 # ---------------- PRODUCT MAP ---------------- #
@@ -103,6 +31,229 @@ Product_map= {
     1113410 : { "line_name" : "Kosheshkaran" , "line_speed" : 37 , "Target_Pr" : 0.85,"name": "2.7Kg Ladan", "Weight": 2700, "Pack": 4},
     1215404 : { "line_name" : "Kosheshkaran" , "line_speed" : 37 , "Target_Pr" : 0.85,"name": "2.7Kg Almas", "Weight": 2700, "Pack": 4},
 }
+
+#--------------- Titles ----------------#
+st.set_page_config(page_title="OEE Dashboard",layout="wide")
+st.markdown("""
+<div style='text-align:center;padding-bottom:20px;'>
+
+<h1>
+🏭 Manufacturing Intelligence Platform
+</h1>
+
+<p style='font-size:18px;color:#9ca3af'>
+AI Powered Production Analytics
+</p>
+
+<p style='font-size:18px;color:#9ca3af'>
+Data-Driven Management
+</p>
+
+</div>
+""",
+unsafe_allow_html=True)
+st.divider()
+
+def center_table(df):
+    return (
+        df.style
+        .set_properties(**{'text-align': 'center'})
+        .set_table_styles([
+            {'selector': 'th',
+             'props': [('text-align', 'center')]}
+        ])
+    )
+
+# ---------------- LOAD DATA ---------------- #
+OEE_loc = r"D:\Python\Python_Project\OEE_Project_Files_2026\FirstSeason2026.xlsx"
+@st.cache_data
+def load_data(OEE_loc):
+    return pd.read_excel(OEE_loc)
+
+df = load_data(OEE_loc)
+import jdatetime
+
+def jalali_to_gregorian(x):
+
+    x = str(int(x))
+
+    year = int(x[:4])
+
+    month = int(x[4:6])
+
+    day = int(x[6:8])
+
+    return jdatetime.date(
+        year,
+        month,
+        day
+    ).togregorian()
+
+df["Date_Jalali"] = df["Date"].astype(str)
+
+df["Date_Gregorian"] = df["Date_Jalali"].apply(jalali_to_gregorian)
+
+df["Date_Gregorian"] = pd.to_datetime(df["Date_Gregorian"])
+
+df["Line"] = df["Line"].astype(str)
+
+df["Shift"] = df["Shift"].astype(str)
+# -----------------------------------------------------------------------------
+# ---------------- RAW DATA ---------------- #
+# code_replace = {
+#         1113140: 1113142,
+#         1113144: 1113142
+#     }
+
+# ----------------Date FILTER ---------------- #
+
+st.sidebar.subheader("Liquid Packaging Team")
+
+st.sidebar.title("⚙️Filters")
+period = st.sidebar.selectbox(
+
+    "📅 Time Period",
+
+    [
+
+        "Last Day",
+
+        "Last 7 Days",
+
+        "Last Month",
+
+        "Last Quarter",
+
+        "Custom"
+
+    ]
+
+)
+all_lines = ["All"] + sorted(df["Line"].unique())
+
+Selected_line = st.sidebar.selectbox(
+
+    "🏭 Line",
+
+    all_lines
+
+)
+all_shift = ["All"] + sorted(df["Shift"].unique())
+
+Selected_shift = st.sidebar.selectbox(
+
+    "🌙 Shift",
+
+    all_shift
+)
+
+df["Product Name"] = df["Product Code"].map(
+
+    lambda x: Product_map.get(x, {}).get("name", "Unknown")
+
+)
+all_products = [
+
+    "All Products"
+
+] + sorted(df["Product Name"].unique())
+
+Selected_product = st.sidebar.selectbox(
+
+    "📦 Product",
+
+    all_products
+
+)
+today = df["Date_Gregorian"].max()
+if period == "Last Day":
+
+    start_date = today - pd.Timedelta(days=0)
+
+    end_date = today
+
+elif period == "Last 7 Days":
+
+    start_date = today - pd.Timedelta(days=6)
+
+    end_date = today
+
+elif period == "Last Month":
+
+    start_date = today - pd.Timedelta(days=30)
+
+    end_date = today
+
+elif period == "Last Quarter":
+
+    start_date = today - pd.Timedelta(days=90)
+
+    end_date = today
+
+else:
+
+    start_date = st.sidebar.date_input(
+        "From",
+        value=df["Date_Gregorian"].min(),
+        min_value=df["Date_Gregorian"].min(),
+        max_value=df["Date_Gregorian"].max()
+    )
+
+    end_date = st.sidebar.date_input(
+        "To",
+        value=df["Date_Gregorian"].max(),
+        min_value=df["Date_Gregorian"].min(),
+        max_value=df["Date_Gregorian"].max()
+    )
+
+df_filtered = df.copy()
+df_filtered = df_filtered[(df_filtered["Date_Gregorian"] >= pd.to_datetime(start_date))&(df_filtered["Date_Gregorian"] <= pd.to_datetime(end_date))]
+import jdatetime
+
+start_j = jdatetime.date.fromgregorian(date=start_date)
+end_j = jdatetime.date.fromgregorian(date=end_date)
+
+col1,col2,col3,col4 = st.columns(4)
+
+with col2:
+
+    st.markdown(f"""
+    ### 📅 From
+
+    **{start_date.strftime("%d %b %Y")}**
+
+    <span style='color:#22C55E;font-size:18px'>
+    {start_j.strftime("%Y/%m/%d")}
+    </span>
+
+    """, unsafe_allow_html=True)
+
+with col3:
+
+    st.markdown(f"""
+    ### 📅 To
+
+    **{end_date.strftime("%d %b %Y")}**
+
+    <span style='color:#22C55E;font-size:18px'>
+    {end_j.strftime("%Y/%m/%d")}
+    </span>
+
+    """, unsafe_allow_html=True)
+# st.write(df_filtered.shape)
+if Selected_line != "All":
+    df_filtered = df_filtered[df_filtered["Line"] == Selected_line]
+
+if Selected_shift != "All":
+    df_filtered = df_filtered[df_filtered["Shift"] == Selected_shift]
+
+if Selected_product != "All Products":
+    df_filtered = df_filtered[df_filtered["Product Name"] == Selected_product]
+st.sidebar.divider()
+st.sidebar.caption("Manufacturing Intelligence Platform")
+st.sidebar.caption("Version 1.0")
+
+
 
 # ---------------- ONLY IF ONE LINE SELECTED ---------------- #
 code_replace = {
@@ -127,10 +278,8 @@ if Selected_line == "All":
     df_filtered_Pr["Plan Coverage"]=(df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Plan"])*100
     df_filtered_Pr["Pr%"] = (df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Target_Plan"])*100
 
-
-
     st.subheader("🏭 Production Overview")
-    st.dataframe(df_filtered_Pr.round(2), hide_index=True)
+    st.dataframe(df_filtered_Pr.round(2), hide_index=True )
 
     best_line = df_filtered_Pr.loc[
         df_filtered_Pr["Pr%"].idxmax(),
@@ -142,12 +291,16 @@ if Selected_line == "All":
         "Line"
     ]
 
-    k1, k2, k3, k4 = st.columns(4)
+    total_plan_coverage = (df_filtered_Pr["Total_Production_Ton"].sum()/df_filtered_Pr["Total_Plan"].sum())*100
 
+    st.divider()
+    k1, k2, k3, k4, k5 = st.columns(5)
+    st.divider()
     k1.metric("Highest Pr", best_line)
     k2.metric("Lowest Pr", Lowest_Pr)
-    k3.metric("Total PR", f"{(df_filtered_Pr["Total_Production_Ton"].sum()/df_filtered_Pr["Total_Target_Plan"].sum())*100:.2f}%")
-    k4.metric("Total Production",f"{df_filtered_Pr['Total_Production_Ton'].sum():.0f}")
+    k3.metric("Total Pr", f"{(df_filtered_Pr["Total_Production_Ton"].sum()/df_filtered_Pr["Total_Target_Plan"].sum())*100:.2f}%")
+    k4.metric("Total Plan Coverage",f"{ total_plan_coverage:.2f}%")
+    k5.metric("Total Production",f"{df_filtered_Pr['Total_Production_Ton'].sum():.2f}")
 
     st.subheader("🏆 Line Performance Ranking")
     fig = px.bar(
@@ -160,29 +313,37 @@ if Selected_line == "All":
 
     fig.update_traces(
         texttemplate="%{text:.1f}%",
-        textposition="outside")
+        textposition="outside",
+        textfont_size=16)
 
     fig.update_layout(
         template="plotly_dark",
         height=450,
         yaxis_title="Performance (%)",
         xaxis_title="Line")
-
     st.plotly_chart(
         fig,
         use_container_width=True)
 
+    st.divider()
+
+    df_filtered_Pr["Share%"] = (
+                                       df_filtered_Pr["Total_Production_Ton"]
+                                       / df_filtered_Pr["Total_Production_Ton"].sum()
+                               ) * 100
     st.subheader("📈 Plan Coverage Ranking")
     fig_plan = px.bar(
         df_filtered_Pr.sort_values("Plan Coverage", ascending=False),
         x="Line",
         y="Plan Coverage",
         color="Plan Coverage",
-        text="Plan Coverage")
+        text="Plan Coverage"
+    )
 
     fig_plan.update_traces(
         texttemplate="%{text:.1f}%",
-        textposition="outside")
+        textposition="outside",
+        textfont_size=16)
 
     fig_plan.update_layout(
         template="plotly_dark",
@@ -194,20 +355,33 @@ if Selected_line == "All":
         fig_plan,
         use_container_width=True
     )
+    st.divider()
 
-    st.subheader("🏭 Production Share By Line")
+    df_filtered_Pr["Share%"] = (
+                                       df_filtered_Pr["Total_Production_Ton"]
+                                       / df_filtered_Pr["Total_Production_Ton"].sum()
+                               ) * 100
+
+    # st.dataframe(df_filtered_Pr)
+    st.subheader("🏭­ Production Share By Line")
 
     fig_prod = px.bar(
         df_filtered_Pr.sort_values("Total_Production_Ton", ascending=False),
         x="Line",
         y="Total_Production_Ton",
         color="Total_Production_Ton",
-        text="Total_Production_Ton")
+        text="Total_Production_Ton",
+
+    )
 
     fig_prod.update_traces(
         texttemplate="%{text:.1f}",
-        textposition="outside"
+        textposition="outside",
+        textfont_size=16,
+
+
     )
+
 
     fig_prod.update_layout(
         template="plotly_dark",
@@ -220,18 +394,62 @@ if Selected_line == "All":
         use_container_width=True)
 
 #--------------------------------------------------
-
+    st.divider()
     st.subheader("🎯 Performance vs Plan Coverage")
 
     fig_scatter = px.scatter(
-            df_filtered_Pr,
-            x="Plan Coverage",
-            y="Pr%",
-            size="Total_Production_Ton",
-            color="Line",
-            text="Line"
-        )
 
+        df_filtered_Pr,
+
+        x="Plan Coverage",
+
+        y="Pr%",
+
+        size="Total_Production_Ton",
+
+        color="Line",
+
+        text="Line",
+
+        custom_data=[
+            "Line",
+            "Total_Production_Ton",
+            "Total_Time",
+            "Share%"
+        ]
+
+    )
+
+    fig_scatter.update_traces(
+
+        hovertemplate=
+
+        "<b>🏭­ %{customdata[0]}</b><br><br>"
+
+        +
+
+        "📈 Performance : %{y:.1f}%<br>"
+
+        +
+
+        "🎯 Plan Coverage : %{x:.1f}%<br>"
+
+        +
+
+        "📦 Production : %{customdata[1]:.1f} Ton<br>"
+
+        +
+        "📊 Share : %{customdata[3]:.1f}%<br>"
+
+        +
+
+        "⏱ Working Time : %{customdata[2]:.0f} min"
+
+        +
+
+        "<extra></extra>"
+
+    )
     fig_scatter.update_traces(
             textposition="top center"
         )
@@ -240,9 +458,20 @@ if Selected_line == "All":
             template="plotly_dark",
             height=600,
             xaxis_title="Plan Coverage (%)",
-            yaxis_title="Performance (%)"
-        )
+            yaxis_title="Performance (%)",
+            hoverlabel = dict(
 
+            bgcolor="#111827",
+
+            bordercolor="#22C55E",
+
+            font_size=17,
+
+            font_family="Segoe UI",
+
+            font_color="white"
+            )
+    )
     st.plotly_chart(
             fig_scatter,
             use_container_width=True
@@ -279,23 +508,6 @@ if Selected_line != "All":
     col1 = ["Product Name", "Working_Time", "Line_Speed", "Production (Ton)", "Plan Coverage" , "Pr%" , "Share%"]
     display_Line_Plan = Line_Plan[col1]
 
-    #
-    # st.markdown("""
-    #                 <div style="
-    #                 background-color:#111827;
-    #                 padding:20px;
-    #                 border-radius:15px;
-    #                 margin-bottom:20px;
-    #                 ">
-    #                 <h3>🏭 Production Overview</h3>
-    #                 <p>Performance Analysis of Selected Line</p>
-    #                 </div>
-    #                 """, unsafe_allow_html=True)
-    #
-    #
-    #
-
-
     st.subheader("Production Overview")
 
     st.markdown("This section presents an overview of the production performance for the selected reporting period. The analysis includes total production volume, production share by product, plan coverage, and operational performance (PR%) for each product category.")
@@ -316,7 +528,7 @@ if Selected_line != "All":
     Line_SpeedDi = Lines_df[Lines_df["Line Speed"] > 0]
     Line_SpeedDi = Line_SpeedDi[Line_SpeedDi["Product"] > 0]
     # st.dataframe(Line_SpeedDi.round(1), hide_index=True)
-    colsSpeedDi = ["Date"] + ["Product Code"] + ["Shift"] + ["Line Speed"] + ["Time"] + ["Product"]
+    colsSpeedDi = ["Date_Jalali"] + ["Product Code"] + ["Shift"] + ["Line Speed"] + ["Time"] + ["Product"]
     Line_SpeedDi = Line_SpeedDi[colsSpeedDi].copy()
     # st.dataframe(Line_SpeedDi.round(1), hide_index=True)
     Line_SpeedDi.rename(columns={"Product": "Bottle"}, inplace=True)
@@ -326,6 +538,7 @@ if Selected_line != "All":
 
     Line_Shift_in_Month = Line_SpeedDi["Shift"].count()
 
+
     Line_PR = (Line_Plan["Production (Ton)"].sum() / Line_Plan["Total_Target_Plan"].sum())* 100
 
 
@@ -334,36 +547,6 @@ if Selected_line != "All":
     total_plan = Line_Plan["Total_Plan"].sum()
     total_time = Line_Plan["Working_Time"].sum()
     plan_coverage = (total_ton / total_plan) * 100
-
-    # import plotly.graph_objects as go
-    #
-    # def create_gauge(value, title, max_value=100, threshold=85):
-    #     fig = go.Figure(go.Indicator(
-    #         mode="gauge+number+delta",
-    #         value=value,
-    #         title={'text': title},
-    #         gauge={
-    #             'axis': {'range': [0, max_value]},
-    #             'bar': {'color': "darkblue"},
-    #             'steps': [
-    #                 {'range': [0, 70], 'color': "red"},
-    #                 {'range': [70, 85], 'color': "yellow"},
-    #                 {'range': [85, max_value], 'color': "green"}
-    #             ],
-    #             'threshold': {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': threshold}
-    #         }
-    #     ))
-    #     fig.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10))
-    #     return fig
-
-
-    # col1, col2, col3, col4 = st.columns(4)
-    #
-    # with col2:
-    #     st.plotly_chart(create_gauge(plan_coverage, "Plan Coverage %", 120), use_container_width=True)
-    #
-    # with col3:
-    #     st.plotly_chart(create_gauge(Line_PR, "Performance %", 100), use_container_width=True)
 
 
     col1, col2, col3 ,col4 ,col5 , col6 = st.columns(6)
@@ -418,139 +601,138 @@ if Selected_line != "All":
 
 
     Line_Std = Line_SpeedDi.groupby("Product Name", as_index=False).agg(Av_Speed=("Actual Speed", "mean"),Standard_Deviation=("Actual Speed", "std"))
-    Line_Std["%STD"] = (Line_Std["Standard_Deviation"] / Line_Std["Av_Speed"]) * 100
-    Line_Std = Line_Std.reset_index(drop=True).round(1)
+    Line_Std["%STD"] = (
+                               Line_Std["Standard_Deviation"] /
+                               Line_Std["Av_Speed"]
+                       ) * 100
 
-    col1 , col2 = st.columns(2)
-    with col1:
-        st.subheader("Shift Stability Analysis")
-        st.markdown("")
-        st.dataframe(Line_Stability.round(1), hide_index=True)
+    Line_Std = Line_Std.dropna(subset=["%STD"])
+    if Line_Std.empty:
 
-        st.subheader("Coefficient of variation (%STD)")
-        st.markdown("Line speed variability was evaluated using the coefficient of variation (%STD)"
+        st.subheader("📈 Shift Stability Analysis")
+
+        st.info("""
+        ℹ️ Not enough observations to calculate speed variability.
+
+        Please select **All Shifts** or a wider date range.
+        """)
+
+    else:
+        col1 , col2 = st.columns(2)
+        with col1:
+            st.subheader("Shift Stability Analysis")
+            st.markdown("")
+            st.dataframe(Line_Stability.round(1), hide_index=True)
+
+            st.subheader("Coefficient of variation (%STD)")
+            st.markdown("Line speed variability was evaluated using the coefficient of variation (%STD)"
                     "to quantify speed fluctuations during production. Higher values indicate unstable operating behavior"
                     " and increased process variability, while lower values represent more consistent production performance."
                     " Note: %STD = Line speed fluctuation coefficient")
-
-        st.dataframe(Line_Std.round(1),hide_index=True)
+            st.dataframe(Line_Std.round(1),hide_index=True)
 
 
     # ---------------- STD CHART ---------------- #
-    with col2:
-        fig = go.Figure()
-
-        fig.add_trace(
-            go.Scatter(
-                x=Line_Std["Product Name"],
-                y=Line_Std["%STD"],
-                mode="lines+markers+text",
-                text=[f"{x:.1f}%" for x in Line_Std["%STD"]],
-                textposition="top center",
-                line=dict(width=4),
-                marker=dict(size=12),
-                name="Speed Variation"
+        with col2:
+            fig = go.Figure()
+            fig.add_trace(
+                go.Scatter(
+                    x=Line_Std["Product Name"],
+                    y=Line_Std["%STD"],
+                    mode="lines+markers+text",
+                    text=[f"{x:.1f}%" for x in Line_Std["%STD"]],
+                    textposition="top center",
+                    line=dict(width=4),
+                    marker=dict(size=12),
+                    name="Speed Variation"
+                )
             )
+            # Green Zone
+            fig.add_hrect(
+                y0=0,
+                y1=10,
+                fillcolor="green",
+                opacity=0.15,
+                line_width=0
+            )
+            # Warning Zone
+            fig.add_hrect(
+                y0=10,
+                y1=20,
+                fillcolor="yellow",
+                opacity=0.12,
+                line_width=0)
+            fig.add_hrect(
+                y0=20,
+                y1=50,
+                fillcolor="red",
+                opacity=0.12,
+                line_width=0
+            )
+            fig.add_hline(
+                y=30,
+                line_dash="dash",
+                annotation_text="Critical Limit"
+            )
+            fig.update_layout(
+                title=f"Line Speed Variation Analysis - {Selected_line}",
+                template="plotly",
+                height=550,
+                paper_bgcolor="#0B1120",
+                plot_bgcolor="#111827",
+                font=dict(
+                    color="white",
+                    size=16
+                ),
+                xaxis_title="Product Name",
+                yaxis_title="Coefficient of Variation (%)",
+                hovermode="x unified"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            Line_Std = Line_Std.dropna(subset=["%STD"])
+            if not Line_Std.empty:
+                Lowest_Variation = Line_Std.loc[
+                    Line_Std["%STD"].idxmax(),
+                    "Product Name"
+                ]
+                worst_std = Line_Std["%STD"].max()
+        st.warning(
+            f"AI Insight: Highest speed variability detected in "
+            f"{Lowest_Variation} ({worst_std:.1f}%). "
+            f"This product shows the highest process instability and may require investigation."
         )
+        Stable_percent = (Line_Stability["Stable Shift"].sum() / Line_Stability["Total Shift"].sum()) * 100
+        best_product = Line_Plan.loc[Line_Plan["Pr%"].idxmax(),"Product Name"]
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("All Shifts",f"{Line_Shift_in_Month:.0f}")
+        with col2:
+            st.metric("Stable Shifts",f"{Stable_percent.round(1)}")
+        with col3:
+            st.metric("Stable Product",f"{Line_Std.loc[Line_Std["%STD"].idxmin(),"Product Name"]}")
+        with col4:
+            st.metric("Best Performance",f"{best_product}")
 
-        # Green Zone
-        fig.add_hrect(
-            y0=0,
-            y1=10,
-            fillcolor="green",
-            opacity=0.15,
-            line_width=0
-        )
-
-        # Warning Zone
-        fig.add_hrect(
-            y0=10,
-            y1=20,
-            fillcolor="yellow",
-            opacity=0.12,
-            line_width=0
-        )
-
-        # Critical Zone
-        fig.add_hrect(
-            y0=20,
-            y1=50,
-            fillcolor="red",
-            opacity=0.12,
-            line_width=0
-        )
-
-        fig.add_hline(
-            y=30,
-            line_dash="dash",
-            annotation_text="Critical Limit"
-        )
-
-        fig.update_layout(
-            title=f"Line Speed Variation Analysis - {Selected_line}",
-            template="plotly",
-            height=550,
-
-            paper_bgcolor="#0B1120",
-            plot_bgcolor="#111827",
-            font=dict(
-                color="white",
-                size=16
-            ),
-
-            xaxis_title="Product Name",
-            yaxis_title="Coefficient of Variation (%)",
-
-            hovermode="x unified"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    Lowest_Variation = Line_Std.loc[Line_Std["%STD"].idxmax(),"Product Name"]
-
-    worst_std = Line_Std["%STD"].max()
-
-    st.warning(f"AI Insight: Highest speed variability detected in {Lowest_Variation} ({worst_std:.1f}%). "
-        f"This product shows the highest process instability and may require investigation.")
-
-    # -------------Another KPI -----------
-    Stable_percent = (Line_Stability["Stable Shift"].sum() / Line_Stability["Total Shift"].sum()) * 100
-
-    best_product = Line_Plan.loc[Line_Plan["Pr%"].idxmax(),"Product Name"]
-
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("All Shifts",f"{Line_Shift_in_Month:.0f}")
-    with col2:
-        st.metric("Stable Shifts",f"{Stable_percent.round(1)}")
-    with col3:
-        st.metric("Stable Product",f"{Line_Std.loc[Line_Std["%STD"].idxmin(),"Product Name"]}")
-    with col4:
-        st.metric("Best Performance",f"{best_product}")
-
-    #--------------------Line Stoppages------------------
-
-
-    df_stoppage = pd.read_excel(address_code)
-    stoppage_map = {
-        row["Code"]: {
-            "Kind": row["Kind"],
-            "Machine": row["Machine"],
-            "Issue": row["Issue"],
-            "Type": row["Type"]
-        }
-        for _, row in df_stoppage.iterrows()
+address_code = ("D:\\Python\\Python_Project\\OEE_Project_Files_2026\\Code_map.xlsx")
+df_stoppage = pd.read_excel(address_code)
+stoppage_map = {
+    row["Code"]: {
+        "Kind": row["Kind"],
+        "Machine": row["Machine"],
+        "Issue": row["Issue"],
+        "Type": row["Type"]
     }
-
+    for _, row in df_stoppage.iterrows()
+}
+if Selected_line != "All":
+    address_code1 = "D:\\Python\\Python_Project\\OEE_Project_Files_2026\\Kind_map.xlsx"
     df_kind = pd.read_excel(address_code1)
     Kind_map = {
         row["Stoppage Kind"]: {
             "Stop": row["Stop"],}
         for _, row in df_kind.iterrows()}
-
     # st.subheader("Line_df - DataFrame")
     # st.dataframe(Lines_df , hide_index=True)
-
     Line_Stoppages = Lines_df.groupby("Code", as_index=False).agg(Stoppage_Minute=("Minute", "sum"),Stoppage_Count=("Count", "sum")).sort_values(by="Stoppage_Minute", ascending=False)
     Line_Stoppages["Symbol of Stoppages"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Kind"])
     Line_Stoppages["Reason"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Machine"])
@@ -561,7 +743,6 @@ if Selected_line != "All":
     Line_Stoppages = Line_Stoppages[~Line_Stoppages["Code"].isin(Ignored_codes)]
     # st.subheader("Line Stoppages - DataFrame")
     # st.dataframe(Line_Stoppages , hide_index=True)
-
     Line_Stoppages_Detail = Line_Stoppages.copy()
 
 
@@ -570,18 +751,14 @@ if Selected_line != "All":
     Line_Stoppages= Line_Stoppages.groupby("Classification", as_index=False).agg(Stoppage_Minute=("Stoppage_Minute", "sum")).sort_values(by="Stoppage_Minute", ascending=False)
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
     Line_Stoppages["Share%"] = (Line_Stoppages["Stoppage_Minute"]/total_loss) * 100
-
     st.subheader("Classification of Stoppages")
     st.dataframe(Line_Stoppages.round(1) , hide_index=True)
-
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
 
 
 
     # -----------------------------------------------------------------------------------------------------------------
-
-    st.subheader("Where Did We Lose Time?")
-
+    st.subheader("🏭Where Did We Lose Time?")
     fig = px.bar(
         Line_Stoppages,
         x="Classification",
@@ -589,12 +766,10 @@ if Selected_line != "All":
         color="Classification",
         text="Stoppage_Minute"
     )
-
     fig.update_layout(
         template="plotly_dark",
         height=350
     )
-
     st.plotly_chart(
         fig,
         use_container_width=True
@@ -602,132 +777,131 @@ if Selected_line != "All":
     if len(Line_Stoppages) >= 2:
         top2 = Line_Stoppages.head(2)
         share = top2["Share%"].sum()
-
         st.success(
-            f"""
-    🤖 AI Insight: 
-    Total stoppages time is equal to {total_loss.round(0)} minutes
-            , {share:.1f}% of all losses originated from {top2.iloc[0]['Classification']} and {top2.iloc[1]['Classification']}.
-    """)
+                f"""
+        🤖  AI Insight: 
+        Total stoppages time is equal to {total_loss.round(0)} minutes
+                , {share:.1f}% of all losses originated from {top2.iloc[0]['Classification']} and {top2.iloc[1]['Classification']}.
+        """)
 
     #----------------------------------------------------------------
 
-    selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
+        selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
 
-    detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
+        detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
 
-    st.subheader(f"Details of {selected_class} ")
+        st.subheader(f"Details of {selected_class}: ")
 
-    # st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+        # st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-    reason_df = (detail_df.groupby("Reason", as_index=False).agg(Minute=("Stoppage_Minute", "sum")).sort_values( "Minute",ascending=False))
+        reason_df = (detail_df.groupby("Reason", as_index=False).agg(Minute=("Stoppage_Minute", "sum")).sort_values( "Minute",ascending=False))
 
-    fig2 = px.bar(
-        reason_df,
+        fig2 = px.bar(
+            reason_df,
 
-        y="Reason",
-        x="Minute",
+            y="Reason",
+            x="Minute",
 
-        orientation="h",
+            orientation="h",
 
-        text="Minute",
+            text="Minute",
 
-        color="Minute"
-    )
+            color="Minute"
+        )
 
-    fig2.update_layout(
-        template="plotly_dark",
-        height=400,
-        showlegend=False
-    )
+        fig2.update_layout(
+            template="plotly_dark",
+            height=400,
+            showlegend=False
+        )
 
-    st.plotly_chart(
-        fig2,
-        use_container_width=True
-    )
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )
 
-    top_reason = reason_df.iloc[0]
+        top_reason = reason_df.iloc[0]
 
-    share_reason = (top_reason["Minute"]/reason_df["Minute"].sum())*100
+        share_reason = (top_reason["Minute"]/reason_df["Minute"].sum())*100
 
-    st.info(
-        f"""
-    🤖 AI Insight
+        st.info(
+            f"""
+        🤖 AI Insight
+    
+        Inside {selected_class},
+    
+        {top_reason['Reason']} is the dominant source of downtime.
+    
+        Impact:
+        {share_reason:.1f}% of all losses in this category.
+    
+        Recommended focus:
+        Investigate this issue first.
+        """
+        )
 
-    Inside {selected_class},
+        with st.expander("📋 View Raw Stoppage Data"):
 
-    {top_reason['Reason']} is the dominant source of downtime.
+            st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-    Impact:
-    {share_reason:.1f}% of all losses in this category.
+        st.subheader("🏭­ Which Reason Hurt Us Most?")
+        equipment_df = (
+            Line_Stoppages_Detail
+            .groupby("Reason", as_index=False)
+            .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
+            .sort_values("Stoppage_Minute", ascending=False)
+        )
+        fig = px.bar(
+            equipment_df,
+            x="Reason",
+            y="Stoppage_Minute",
+            color="Reason",
+            text="Stoppage_Minute"
+        )
 
-    Recommended focus:
-    Investigate this issue first.
-    """
-    )
+        fig.update_layout(
+            template="plotly_dark",
+            height=350
+        )
 
-    with st.expander("📋 View Raw Stoppage Data"):
+        st.plotly_chart(fig, use_container_width=True)
 
-        st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+        selected_machine = st.selectbox(
+            "🔍 Explore Equipment",
+            equipment_df["Reason"]
+        )
 
-    st.subheader("🏭 Which Reason Hurt Us Most?")
-    equipment_df = (
-        Line_Stoppages_Detail
-        .groupby("Reason", as_index=False)
-        .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
-        .sort_values("Stoppage_Minute", ascending=False)
-    )
-    fig = px.bar(
-        equipment_df,
-        x="Reason",
-        y="Stoppage_Minute",
-        color="Reason",
-        text="Stoppage_Minute"
-    )
+        machine_detail = Line_Stoppages_Detail[
+            Line_Stoppages_Detail["Reason"] == selected_machine
+            ]
 
-    fig.update_layout(
-        template="plotly_dark",
-        height=350
-    )
+        machine_loss = (
+            machine_detail
+            .groupby("Classification", as_index=False)
+            .agg(Minute=("Stoppage_Minute", "sum"))
+            .sort_values("Minute", ascending=False)
+        )
 
-    st.plotly_chart(fig, use_container_width=True)
+        fig2 = px.bar(
+            machine_loss,
+            y="Classification",
+            x="Minute",
+            orientation="h",
+            text="Minute",
+            color="Minute"
+        )
 
-    selected_machine = st.selectbox(
-        "🔍 Explore Equipment",
-        equipment_df["Reason"]
-    )
+        fig2.update_layout(
+            template="plotly_dark",
+            height=400,
+            showlegend=False
+        )
 
-    machine_detail = Line_Stoppages_Detail[
-        Line_Stoppages_Detail["Reason"] == selected_machine
-        ]
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )
 
-    machine_loss = (
-        machine_detail
-        .groupby("Classification", as_index=False)
-        .agg(Minute=("Stoppage_Minute", "sum"))
-        .sort_values("Minute", ascending=False)
-    )
+        with st.expander("📋 View Raw Stoppage Data"):
 
-    fig2 = px.bar(
-        machine_loss,
-        y="Classification",
-        x="Minute",
-        orientation="h",
-        text="Minute",
-        color="Minute"
-    )
-
-    fig2.update_layout(
-        template="plotly_dark",
-        height=400,
-        showlegend=False
-    )
-
-    st.plotly_chart(
-        fig2,
-        use_container_width=True
-    )
-
-    with st.expander("📋 View Raw Stoppage Data"):
-
-        st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+            st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
