@@ -67,8 +67,8 @@ def center_table(df):
 # ---------------- LOAD DATA ---------------- #
 
 @st.cache_data
-def load_data("FirstSeason2026.xlsx"):
-    return pd.read_excel("FirstSeason2026.xlsx")
+def load_data(OEE_loc):
+    return pd.read_excel(OEE_loc)
 
 df = load_data("FirstSeason2026.xlsx")
 import jdatetime
