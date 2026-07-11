@@ -1,24 +1,16 @@
-import os
-
-# Keep native numerical libraries within Streamlit Cloud's small container limits.
-os.environ.setdefault("OMP_NUM_THREADS", "1")
-os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
-os.environ.setdefault("MKL_NUM_THREADS", "1")
-os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
-os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
-os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from pathlib import Path
 
-OEE_loc = "FirstSeason2026.xlsx"
+BASE_DIR = Path(__file__).resolve().parent
 
-address_code = "Code_map.xlsx"
-
-address_code1 = "Kind_map.xlsx"
+OEE_loc = BASE_DIR / "FirstSeason2026.xlsx"
+address_code = BASE_DIR / "Code_map.xlsx"
+address_code1 = BASE_DIR / "Kind_map.xlsx"
 
 # ---------------- PRODUCT MAP ---------------- #
 Product_map= {
@@ -75,11 +67,11 @@ def center_table(df):
 
 # ---------------- LOAD DATA ---------------- #
 
+@st.cache_data
 def load_data(OEE_loc):
     return pd.read_excel(OEE_loc)
 
-df = load_data("FirstSeason2026.xlsx")
-
+df = load_data(OEE_loc)
 import jdatetime
 
 def jalali_to_gregorian(x):
@@ -203,16 +195,16 @@ else:
 
     start_date = st.sidebar.date_input(
         "From",
-        value=df["Date_Gregorian"].min().date(),
-        min_value=df["Date_Gregorian"].min().date(),
-        max_value=df["Date_Gregorian"].max().date()
+        value=df["Date_Gregorian"].min(),
+        min_value=df["Date_Gregorian"].min(),
+        max_value=df["Date_Gregorian"].max()
     )
 
     end_date = st.sidebar.date_input(
         "To",
-        value=df["Date_Gregorian"].max().date(),
-        min_value=df["Date_Gregorian"].min().date(),
-        max_value=df["Date_Gregorian"].max().date()
+        value=df["Date_Gregorian"].max(),
+        min_value=df["Date_Gregorian"].min(),
+        max_value=df["Date_Gregorian"].max()
     )
 
 df_filtered = df.copy()
@@ -258,20 +250,10 @@ if Selected_shift != "All":
 
 if Selected_product != "All Products":
     df_filtered = df_filtered[df_filtered["Product Name"] == Selected_product]
-
-# Always detach the filtered frame from the source frame before mutation.
-df_filtered = df_filtered.copy()
-
-if df_filtered.empty:
-    st.warning(
-        "⚠️ No data is available for the selected filters. "
-        "Please choose another line, shift, product, or date range."
-    )
-    st.stop()
-
 st.sidebar.divider()
 st.sidebar.caption("Manufacturing Intelligence Platform")
 st.sidebar.caption("Version 1.0")
+
 
 
 # ---------------- ONLY IF ONE LINE SELECTED ---------------- #
@@ -283,13 +265,14 @@ df_filtered["Product Code"] = (
         df_filtered["Product Code"]
         .replace(code_replace))
 
+
 if Selected_line == "All":
 
     # st.dataframe(df_filtered , hide_index=True)
     # df_filtered = df_filtered[df_filtered["Product"] >= 0]
     # st.dataframe(df_filtered, hide_index=True)
-    df_filtered ["Target Product"] = (df_filtered["Line Speed"] * df_filtered["Time"] * df_filtered["Product Code"].map(lambda x: Product_map.get(x, {}).get("Weight", np.nan)))/1000000
-    df_filtered ["Production (Ton)"]= (df_filtered["Product"] * (df_filtered["Product Code"].map(lambda x: Product_map.get(x, {}).get("Weight", np.nan)))* (df_filtered["Product Code"].map(lambda x: Product_map.get(x, {}).get("Pack", np.nan))))/1000000
+    df_filtered ["Target Product"] = (df_filtered["Line Speed"] * df_filtered["Time"] * df_filtered["Product Code"].map(lambda x: Product_map[x]["Weight"]))/1000000
+    df_filtered ["Production (Ton)"]= (df_filtered["Product"] * (df_filtered["Product Code"].map(lambda x: Product_map[x]["Weight"]))* (df_filtered["Product Code"].map(lambda x: Product_map[x]["Pack"])))/1000000
     # st.dataframe(df_filtered.round(2), hide_index=True)
     df_filtered_Pr = df_filtered.groupby("Line",as_index=False).agg(Total_Time = ("Time" , "sum") ,Total_Plan=("Plan" , "sum") ,Total_ChangePlan=("Change Plan" , "sum"),Total_Production_Ton=("Production (Ton)" , "sum"),Total_Target_Plan=("Target Product" , "sum"))
     # st.dataframe(df_filtered_Pr)
@@ -341,8 +324,7 @@ if Selected_line == "All":
         xaxis_title="Line")
     st.plotly_chart(
         fig,
-        width="stretch",
-        key="all_pr_chart")
+        use_container_width=True)
 
     st.divider()
 
@@ -372,8 +354,7 @@ if Selected_line == "All":
 
     st.plotly_chart(
         fig_plan,
-        width="stretch",
-        key="all_plan_chart"
+        use_container_width=True
     )
     st.divider()
 
@@ -383,7 +364,7 @@ if Selected_line == "All":
                                ) * 100
 
     # st.dataframe(df_filtered_Pr)
-    st.subheader("🏭¬ Production Share By Line")
+    st.subheader("🏭­ Production Share By Line")
 
     fig_prod = px.bar(
         df_filtered_Pr.sort_values("Total_Production_Ton", ascending=False),
@@ -399,7 +380,9 @@ if Selected_line == "All":
         textposition="outside",
         textfont_size=16,
 
+
     )
+
 
     fig_prod.update_layout(
         template="plotly_dark",
@@ -409,8 +392,7 @@ if Selected_line == "All":
 
     st.plotly_chart(
         fig_prod,
-        width="stretch",
-        key="all_production_chart")
+        use_container_width=True)
 
 #--------------------------------------------------
     st.divider()
@@ -443,7 +425,7 @@ if Selected_line == "All":
 
         hovertemplate=
 
-        "<b>🏭¬ %{customdata[0]}</b><br><br>"
+        "<b>🏭­ %{customdata[0]}</b><br><br>"
 
         +
 
@@ -493,16 +475,15 @@ if Selected_line == "All":
     )
     st.plotly_chart(
             fig_scatter,
-            width="stretch",
-            key="all_scatter_chart"
+            use_container_width=True
         )
 
 # --------------------------------------Selected_line != "All" ---------------------------------------------------
 
 if Selected_line != "All":
 
-    Lines_df = df_filtered.copy()
-    Lines_df["Target Ton"] = (Lines_df["Line Speed"]* Lines_df["Time"]* Lines_df["Product Code"].map(lambda x: Product_map.get(x, {}).get("Weight", np.nan))) / 1000000
+    Lines_df = df_filtered
+    Lines_df["Target Ton"] = (Lines_df["Line Speed"]* Lines_df["Time"]* Lines_df["Product Code"].map(lambda x: Product_map[x]["Weight"])) / 1000000
     # st.subheader("Nima0")
     # st.dataframe(Lines_df)
     Line_Plan = Lines_df.groupby("Product Code", as_index=False).agg(Total_Production=("Product", "sum"),Working_Time=("Time", "sum"),Line_Speed=("Line Speed", "mean"),
@@ -514,7 +495,7 @@ if Selected_line != "All":
     # st.dataframe(Line_Plan)
     Line_Plan["Product Name"] = Line_Plan["Product Code"].map(lambda x: Product_map.get(x, {}).get("name", "Unknown Product"))
 
-    Line_Plan["Production (Ton)"] = (Line_Plan["Total_Production"]*Line_Plan["Product Code"].map(lambda x: Product_map.get(x, {}).get("Weight", np.nan))* Line_Plan["Product Code"].map(lambda x: Product_map.get(x, {}).get("Pack", np.nan))) / 1_000_000
+    Line_Plan["Production (Ton)"] = (Line_Plan["Total_Production"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Weight"])* Line_Plan["Product Code"].map(lambda x: Product_map[x]["Pack"])) / 1_000_000
 
     Line_Plan["Plan Coverage"] =(Line_Plan["Production (Ton)"] / Line_Plan["Total_Plan"]) * 100
     # st.subheader("Nima2")
@@ -539,10 +520,11 @@ if Selected_line != "All":
 
     Line_AvSpeed = Line_Plan[["Product Name", "Line_Speed", "Effective Speed"]].copy()
 
-    Line_AvSpeed["Speed Loss(b/min)"]=(Line_AvSpeed["Effective Speed"]-(Line_AvSpeed["Line_Speed"]*Line_Plan["Product Code"].map(lambda x: Product_map.get(x, {}).get("Target_Pr", np.nan))))
+    Line_AvSpeed["Speed Loss(b/min)"]=(Line_AvSpeed["Effective Speed"]-(Line_AvSpeed["Line_Speed"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Target_Pr"])))
+
 
     st.subheader("⚡Effective Speed")
-    st.dataframe(Line_AvSpeed.round(1),width="stretch" ,hide_index=True)
+    st.dataframe(Line_AvSpeed.round(1),use_container_width=True ,hide_index=True)
 
     Line_SpeedDi = Lines_df[Lines_df["Line Speed"] > 0]
     Line_SpeedDi = Line_SpeedDi[Line_SpeedDi["Product"] > 0]
@@ -551,17 +533,15 @@ if Selected_line != "All":
     Line_SpeedDi = Line_SpeedDi[colsSpeedDi].copy()
     # st.dataframe(Line_SpeedDi.round(1), hide_index=True)
     Line_SpeedDi.rename(columns={"Product": "Bottle"}, inplace=True)
-    Line_SpeedDi["Bottle"] = (Line_SpeedDi["Bottle"] * Line_SpeedDi["Product Code"].map(lambda x: Product_map.get(x, {}).get("Pack", np.nan))).round(2)
-    Line_SpeedDi["Product Code"] = Line_SpeedDi["Product Code"].map(lambda x: Product_map.get(x, {}).get("name", "Unknown Product"))
+    Line_SpeedDi["Bottle"] = (Line_SpeedDi["Bottle"] * Line_SpeedDi["Product Code"].map(lambda x: Product_map[x]["Pack"])).round(2)
+    Line_SpeedDi["Product Code"] = Line_SpeedDi["Product Code"].map(lambda x: Product_map[x]["name"])
     Line_SpeedDi.rename(columns={"Product Code": "Product Name"}, inplace=True)
-
-    if Line_SpeedDi.empty:
-        st.info("No valid production observations are available for Shift Stability Analysis.")
-        st.stop()
 
     Line_Shift_in_Month = Line_SpeedDi["Shift"].count()
 
+
     Line_PR = (Line_Plan["Production (Ton)"].sum() / Line_Plan["Total_Target_Plan"].sum())* 100
+
 
     # ---------------- KPI ---------------- #
     total_ton = Line_Plan["Production (Ton)"].sum()
@@ -569,11 +549,13 @@ if Selected_line != "All":
     total_time = Line_Plan["Working_Time"].sum()
     plan_coverage = (total_ton / total_plan) * 100
 
+
     col1, col2, col3 ,col4 ,col5 , col6 = st.columns(6)
     col2.metric("Total Working Time", f"{total_time:.0f}")
     col3.metric("Production (Ton)", f"{total_ton:.1f}")
     col4.metric("Plan Coverage %", f"{plan_coverage:.1f}")
     col5.metric("Line Performance%", f"{Line_PR:.1f}")
+
 
     # ---------------- SHIFT Stability ---------------- #
     Line_SpeedDi["PR%"] = (Line_SpeedDi["Bottle"] / (Line_SpeedDi["Time"] * Line_SpeedDi["Line Speed"])) * 100
@@ -598,6 +580,7 @@ if Selected_line != "All":
     # st.subheader('Stability DataFrame - Line_SpeedDi', False)
     # st.dataframe(Line_SpeedDi.round(2), hide_index=True)
 
+
     Line_Stability = (
         Line_SpeedDi
         .groupby(["Product Name", "Stability"])
@@ -616,6 +599,7 @@ if Selected_line != "All":
     Line_Stability = Line_Stability.reset_index()
     cols_stability = ["Product Name"] + ["Total Shift"] + ["Stable Shift"] + ["Unstable Shift"] + ["Stable Shift%"] + ["Unstable Shift%"]
     Line_Stability = Line_Stability[cols_stability]
+
 
     Line_Std = Line_SpeedDi.groupby("Product Name", as_index=False).agg(Av_Speed=("Actual Speed", "mean"),Standard_Deviation=("Actual Speed", "std"))
     Line_Std["%STD"] = (
@@ -647,6 +631,7 @@ if Selected_line != "All":
                     " and increased process variability, while lower values represent more consistent production performance."
                     " Note: %STD = Line speed fluctuation coefficient")
             st.dataframe(Line_Std.round(1),hide_index=True)
+
 
     # ---------------- STD CHART ---------------- #
         with col2:
@@ -704,7 +689,7 @@ if Selected_line != "All":
                 yaxis_title="Coefficient of Variation (%)",
                 hovermode="x unified"
             )
-            st.plotly_chart(fig, width="stretch", key="stability_chart")
+            st.plotly_chart(fig, use_container_width=True)
             Line_Std = Line_Std.dropna(subset=["%STD"])
             if not Line_Std.empty:
                 Lowest_Variation = Line_Std.loc[
@@ -725,11 +710,12 @@ if Selected_line != "All":
         with col2:
             st.metric("Stable Shifts",f"{Stable_percent.round(1)}")
         with col3:
-            st.metric("Stable Product",f"{Line_Std.loc[Line_Std['%STD'].idxmin(),'Product Name']}")
+            st.metric("Stable Product",f"{Line_Std.loc[Line_Std["%STD"].idxmin(),"Product Name"]}")
         with col4:
             st.metric("Best Performance",f"{best_product}")
 
-df_stoppage = pd.read_excel("Code_map.xlsx")
+
+df_stoppage = pd.read_excel(address_code)
 stoppage_map = {
     row["Code"]: {
         "Kind": row["Kind"],
@@ -740,8 +726,7 @@ stoppage_map = {
     for _, row in df_stoppage.iterrows()
 }
 if Selected_line != "All":
-    
-    df_kind = pd.read_excel("Kind_map.xlsx")
+    df_kind = pd.read_excel(address_code1)
     Kind_map = {
         row["Stoppage Kind"]: {
             "Stop": row["Stop"],}
@@ -749,43 +734,27 @@ if Selected_line != "All":
     # st.subheader("Line_df - DataFrame")
     # st.dataframe(Lines_df , hide_index=True)
     Line_Stoppages = Lines_df.groupby("Code", as_index=False).agg(Stoppage_Minute=("Minute", "sum"),Stoppage_Count=("Count", "sum")).sort_values(by="Stoppage_Minute", ascending=False)
-    Line_Stoppages["Symbol of Stoppages"] = Line_Stoppages["Code"].map(
-        lambda x: stoppage_map.get(x, {}).get("Kind")
-    )
-    Line_Stoppages["Reason"] = Line_Stoppages["Code"].map(
-        lambda x: stoppage_map.get(x, {}).get("Machine")
-    )
-    Line_Stoppages["Comment"] = Line_Stoppages["Code"].map(
-        lambda x: stoppage_map.get(x, {}).get("Issue")
-    )
-    Line_Stoppages["Classification"] = Line_Stoppages["Symbol of Stoppages"].map(
-        lambda x: Kind_map.get(x, {}).get("Stop")
-    )
-
-    # Ignore unmapped rows instead of crashing the whole cloud process.
-    Line_Stoppages = Line_Stoppages.dropna(
-        subset=["Classification", "Reason"]
-    ).copy()
+    Line_Stoppages["Symbol of Stoppages"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Kind"])
+    Line_Stoppages["Reason"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Machine"])
+    Line_Stoppages["Comment"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Issue"])
+    # Line_Stoppages["Type"] = Line_Stoppages["Code"].map(lambda x: stoppage_map[x]["Type"])
+    Line_Stoppages["Classification"] = Line_Stoppages["Symbol of Stoppages"].map(lambda x: Kind_map[x]["Stop"])
     Ignored_codes = ["OET01", "OET02", "OET03", "OET04", "OET05", "OET06", "OET09", "OET10", "OET44", "OET45", "OET46"]
     Line_Stoppages = Line_Stoppages[~Line_Stoppages["Code"].isin(Ignored_codes)]
     # st.subheader("Line Stoppages - DataFrame")
     # st.dataframe(Line_Stoppages , hide_index=True)
     Line_Stoppages_Detail = Line_Stoppages.copy()
 
-    if Line_Stoppages_Detail.empty:
-        st.info("No mapped stoppage records are available for the selected filters.")
-        st.stop()
+
 
     # st.subheader("Line Stoppages - DataFrame - Classification Base")
     Line_Stoppages= Line_Stoppages.groupby("Classification", as_index=False).agg(Stoppage_Minute=("Stoppage_Minute", "sum")).sort_values(by="Stoppage_Minute", ascending=False)
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
-    if total_loss <= 0:
-        st.info("No stoppage minutes are available for the selected filters.")
-        st.stop()
-    Line_Stoppages["Share%"] = (Line_Stoppages["Stoppage_Minute"] / total_loss) * 100
+    Line_Stoppages["Share%"] = (Line_Stoppages["Stoppage_Minute"]/total_loss) * 100
     st.subheader("Classification of Stoppages")
     st.dataframe(Line_Stoppages.round(1) , hide_index=True)
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
+
 
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -803,8 +772,7 @@ if Selected_line != "All":
     )
     st.plotly_chart(
         fig,
-        width="stretch",
-        key="classification_chart"
+        use_container_width=True
     )
     if len(Line_Stoppages) >= 2:
         top2 = Line_Stoppages.head(2)
@@ -849,8 +817,7 @@ if Selected_line != "All":
 
         st.plotly_chart(
             fig2,
-            width="stretch",
-            key="classification_reason_chart"
+            use_container_width=True
         )
 
         top_reason = reason_df.iloc[0]
@@ -877,43 +844,27 @@ if Selected_line != "All":
 
             st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-        st.subheader("🏭¬ Which Reason Hurt Us Most?")
+        st.subheader("🏭­ Which Reason Hurt Us Most?")
         equipment_df = (
             Line_Stoppages_Detail
             .groupby("Reason", as_index=False)
             .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
             .sort_values("Stoppage_Minute", ascending=False)
         )
-
         fig = px.bar(
-    equipment_df,
-    x="Reason",
-    y="Stoppage_Minute",
-    color="Stoppage_Minute",
-    text="Stoppage_Minute"
-    )
-        fig.update_traces(
-            texttemplate="%{text:.0f}",
-                    textposition="outside"
-                    )
+            equipment_df,
+            x="Reason",
+            y="Stoppage_Minute",
+            color="Reason",
+            text="Stoppage_Minute"
+        )
+
         fig.update_layout(
             template="plotly_dark",
-            height=450,
-            showlegend=False,
-            coloraxis_showscale=False,
-            bargap=0.25,
-            xaxis_tickangle=-35
-            )
-        st.plotly_chart(
-            fig,
-            width="stretch"
-            )
-        fig.update_layout(
-                template="plotly_dark",
-                height=350
-                )
+            height=350
+        )
 
-        st.plotly_chart(fig, width="stretch", key="equipment_chart")
+        st.plotly_chart(fig, use_container_width=True)
 
         selected_machine = st.selectbox(
             "🔍 Explore Equipment",
@@ -948,11 +899,11 @@ if Selected_line != "All":
 
         st.plotly_chart(
             fig2,
-            width="stretch",
-            key="equipment_classification_chart"
+            use_container_width=True
         )
 
         with st.expander("📋 View Raw Stoppage Data"):
 
             st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+
 
