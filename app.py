@@ -891,31 +891,27 @@ if Selected_line != "All":
     y="Stoppage_Minute",
     color="Stoppage_Minute",
     text="Stoppage_Minute"
-)
-
-fig.update_traces(
-    texttemplate="%{text:.0f}",
-    textposition="outside"
-)
-
-fig.update_layout(
-    template="plotly_dark",
-    height=450,
-    showlegend=False,
-    coloraxis_showscale=False,
-    bargap=0.25,
-    xaxis_tickangle=-35
-)
-
-st.plotly_chart(
-    fig,
-    width="stretch"
-)
-
+    )
+        fig.update_traces(
+            texttemplate="%{text:.0f}",
+                    textposition="outside"
+                    )
         fig.update_layout(
             template="plotly_dark",
-            height=350
-        )
+            height=450,
+            showlegend=False,
+            coloraxis_showscale=False,
+            bargap=0.25,
+            xaxis_tickangle=-35
+            )
+        st.plotly_chart(
+            fig,
+            width="stretch"
+            )
+        fig.update_layout(
+                template="plotly_dark",
+                height=350
+                )
 
         st.plotly_chart(fig, width="stretch", key="equipment_chart")
 
