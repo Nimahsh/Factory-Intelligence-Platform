@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -38,7 +38,7 @@ st.markdown("""
 <div style='text-align:center;padding-bottom:20px;'>
 
 <h1>
-ðŸ­ Manufacturing Intelligence Platform
+🏭 Manufacturing Intelligence Platform
 </h1>
 
 <p style='font-size:18px;color:#9ca3af'>
@@ -67,10 +67,10 @@ def center_table(df):
 # ---------------- LOAD DATA ---------------- #
 
 @st.cache_data
-def load_data(OEE_loc):
-    return pd.read_excel(OEE_loc)
+def load_data("FirstSeason2026.xlsx"):
+    return pd.read_excel("FirstSeason2026.xlsx")
 
-df = load_data(OEE_loc)
+df = load_data("FirstSeason2026.xlsx")
 import jdatetime
 
 def jalali_to_gregorian(x):
@@ -109,10 +109,10 @@ df["Shift"] = df["Shift"].astype(str)
 
 st.sidebar.subheader("Liquid Packaging Team")
 
-st.sidebar.title("âš™ï¸Filters")
+st.sidebar.title("⚙️Filters")
 period = st.sidebar.selectbox(
 
-    "ðŸ“… Time Period",
+    "📅 Time Period",
 
     [
 
@@ -133,7 +133,7 @@ all_lines = ["All"] + sorted(df["Line"].unique())
 
 Selected_line = st.sidebar.selectbox(
 
-    "ðŸ­ Line",
+    "🏭 Line",
 
     all_lines
 
@@ -142,7 +142,7 @@ all_shift = ["All"] + sorted(df["Shift"].unique())
 
 Selected_shift = st.sidebar.selectbox(
 
-    "ðŸŒ™ Shift",
+    "🌙 Shift",
 
     all_shift
 )
@@ -160,7 +160,7 @@ all_products = [
 
 Selected_product = st.sidebar.selectbox(
 
-    "ðŸ“¦ Product",
+    "📦 Product",
 
     all_products
 
@@ -218,7 +218,7 @@ col1,col2,col3,col4 = st.columns(4)
 with col2:
 
     st.markdown(f"""
-    ### ðŸ“… From
+    ### 📅 From
 
     **{start_date.strftime("%d %b %Y")}**
 
@@ -231,7 +231,7 @@ with col2:
 with col3:
 
     st.markdown(f"""
-    ### ðŸ“… To
+    ### 📅 To
 
     **{end_date.strftime("%d %b %Y")}**
 
@@ -278,7 +278,7 @@ if Selected_line == "All":
     df_filtered_Pr["Plan Coverage"]=(df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Plan"])*100
     df_filtered_Pr["Pr%"] = (df_filtered_Pr["Total_Production_Ton"]/df_filtered_Pr["Total_Target_Plan"])*100
 
-    st.subheader("ðŸ­ Production Overview")
+    st.subheader("🏭 Production Overview")
     st.dataframe(df_filtered_Pr.round(2), hide_index=True )
 
     best_line = df_filtered_Pr.loc[
@@ -298,11 +298,11 @@ if Selected_line == "All":
     st.divider()
     k1.metric("Highest Pr", best_line)
     k2.metric("Lowest Pr", Lowest_Pr)
-    k3.metric("Total Pr", f"{(df_filtered_Pr["Total_Production_Ton"].sum()/df_filtered_Pr["Total_Target_Plan"].sum())*100:.2f}%")
+    k3.metric("Total Pr", f"{(df_filtered_Pr['Total_Production_Ton'].sum()/df_filtered_Pr['Total_Target_Plan'].sum())*100:.2f}%")
     k4.metric("Total Plan Coverage",f"{ total_plan_coverage:.2f}%")
     k5.metric("Total Production",f"{df_filtered_Pr['Total_Production_Ton'].sum():.2f}")
 
-    st.subheader("ðŸ† Line Performance Ranking")
+    st.subheader("🏆 Line Performance Ranking")
     fig = px.bar(
         df_filtered_Pr.sort_values("Pr%", ascending=False),
         x="Line",
@@ -331,7 +331,7 @@ if Selected_line == "All":
                                        df_filtered_Pr["Total_Production_Ton"]
                                        / df_filtered_Pr["Total_Production_Ton"].sum()
                                ) * 100
-    st.subheader("ðŸ“ˆ Plan Coverage Ranking")
+    st.subheader("📈 Plan Coverage Ranking")
     fig_plan = px.bar(
         df_filtered_Pr.sort_values("Plan Coverage", ascending=False),
         x="Line",
@@ -363,7 +363,7 @@ if Selected_line == "All":
                                ) * 100
 
     # st.dataframe(df_filtered_Pr)
-    st.subheader("ðŸ­Â­ Production Share By Line")
+    st.subheader("🏭­ Production Share By Line")
 
     fig_prod = px.bar(
         df_filtered_Pr.sort_values("Total_Production_Ton", ascending=False),
@@ -395,7 +395,7 @@ if Selected_line == "All":
 
 #--------------------------------------------------
     st.divider()
-    st.subheader("ðŸŽ¯ Performance vs Plan Coverage")
+    st.subheader("🎯 Performance vs Plan Coverage")
 
     fig_scatter = px.scatter(
 
@@ -424,26 +424,26 @@ if Selected_line == "All":
 
         hovertemplate=
 
-        "<b>ðŸ­Â­ %{customdata[0]}</b><br><br>"
+        "<b>🏭­ %{customdata[0]}</b><br><br>"
 
         +
 
-        "ðŸ“ˆ Performance : %{y:.1f}%<br>"
+        "📈 Performance : %{y:.1f}%<br>"
 
         +
 
-        "ðŸŽ¯ Plan Coverage : %{x:.1f}%<br>"
+        "🎯 Plan Coverage : %{x:.1f}%<br>"
 
         +
 
-        "ðŸ“¦ Production : %{customdata[1]:.1f} Ton<br>"
+        "📦 Production : %{customdata[1]:.1f} Ton<br>"
 
         +
-        "ðŸ“Š Share : %{customdata[3]:.1f}%<br>"
+        "📊 Share : %{customdata[3]:.1f}%<br>"
 
         +
 
-        "â± Working Time : %{customdata[2]:.0f} min"
+        "⏱ Working Time : %{customdata[2]:.0f} min"
 
         +
 
@@ -522,7 +522,7 @@ if Selected_line != "All":
     Line_AvSpeed["Speed Loss(b/min)"]=(Line_AvSpeed["Effective Speed"]-(Line_AvSpeed["Line_Speed"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Target_Pr"])))
 
 
-    st.subheader("âš¡Effective Speed")
+    st.subheader("⚡Effective Speed")
     st.dataframe(Line_AvSpeed.round(1),use_container_width=True ,hide_index=True)
 
     Line_SpeedDi = Lines_df[Lines_df["Line Speed"] > 0]
@@ -609,10 +609,10 @@ if Selected_line != "All":
     Line_Std = Line_Std.dropna(subset=["%STD"])
     if Line_Std.empty:
 
-        st.subheader("ðŸ“ˆ Shift Stability Analysis")
+        st.subheader("📈 Shift Stability Analysis")
 
         st.info("""
-        â„¹ï¸ Not enough observations to calculate speed variability.
+        ℹ️ Not enough observations to calculate speed variability.
 
         Please select **All Shifts** or a wider date range.
         """)
@@ -709,14 +709,11 @@ if Selected_line != "All":
         with col2:
             st.metric("Stable Shifts",f"{Stable_percent.round(1)}")
         with col3:
-            st.metric("Stable Product",f"{Line_Std.loc[Line_Std["%STD"].idxmin(),"Product Name"]}")
+            st.metric("Stable Product",f"{Line_Std.loc[Line_Std['%STD'].idxmin(),'Product Name']}")
         with col4:
             st.metric("Best Performance",f"{best_product}")
 
-
-
-df_stoppage = pd.read_excel(address_code)
-
+df_stoppage = pd.read_excel("Code_map.xlsx")
 stoppage_map = {
     row["Code"]: {
         "Kind": row["Kind"],
@@ -727,8 +724,8 @@ stoppage_map = {
     for _, row in df_stoppage.iterrows()
 }
 if Selected_line != "All":
-    address_code1 = "Kind_map.xlsx"
-    df_kind = pd.read_excel(address_code1)
+    
+    df_kind = pd.read_excel("Kind_map.xlsx")
     Kind_map = {
         row["Stoppage Kind"]: {
             "Stop": row["Stop"],}
@@ -760,7 +757,7 @@ if Selected_line != "All":
 
 
     # -----------------------------------------------------------------------------------------------------------------
-    st.subheader("ðŸ­Where Did We Lose Time?")
+    st.subheader("🏭Where Did We Lose Time?")
     fig = px.bar(
         Line_Stoppages,
         x="Classification",
@@ -781,14 +778,14 @@ if Selected_line != "All":
         share = top2["Share%"].sum()
         st.success(
                 f"""
-        ðŸ¤–  AI Insight: 
+        🤖  AI Insight: 
         Total stoppages time is equal to {total_loss.round(0)} minutes
                 , {share:.1f}% of all losses originated from {top2.iloc[0]['Classification']} and {top2.iloc[1]['Classification']}.
         """)
 
     #----------------------------------------------------------------
 
-        selected_class = st.selectbox("ðŸ” Explore Classification",Line_Stoppages["Classification"])
+        selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
 
         detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
 
@@ -828,7 +825,7 @@ if Selected_line != "All":
 
         st.info(
             f"""
-        ðŸ¤– AI Insight
+        🤖 AI Insight
     
         Inside {selected_class},
     
@@ -842,11 +839,11 @@ if Selected_line != "All":
         """
         )
 
-        with st.expander("ðŸ“‹ View Raw Stoppage Data"):
+        with st.expander("📋 View Raw Stoppage Data"):
 
             st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-        st.subheader("ðŸ­Â­ Which Reason Hurt Us Most?")
+        st.subheader("🏭­ Which Reason Hurt Us Most?")
         equipment_df = (
             Line_Stoppages_Detail
             .groupby("Reason", as_index=False)
@@ -869,7 +866,7 @@ if Selected_line != "All":
         st.plotly_chart(fig, use_container_width=True)
 
         selected_machine = st.selectbox(
-            "ðŸ” Explore Equipment",
+            "🔍 Explore Equipment",
             equipment_df["Reason"]
         )
 
@@ -904,8 +901,6 @@ if Selected_line != "All":
             use_container_width=True
         )
 
-        with st.expander("ðŸ“‹ View Raw Stoppage Data"):
+        with st.expander("📋 View Raw Stoppage Data"):
 
             st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
-
-
