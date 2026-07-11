@@ -320,7 +320,7 @@ if Selected_line == "All":
         xaxis_title="Line")
     st.plotly_chart(
         fig,
-        use_container_width=True)
+        width="stretch")
 
     st.divider()
 
@@ -350,7 +350,7 @@ if Selected_line == "All":
 
     st.plotly_chart(
         fig_plan,
-        use_container_width=True
+        width="stretch"
     )
     st.divider()
 
@@ -386,7 +386,7 @@ if Selected_line == "All":
 
     st.plotly_chart(
         fig_prod,
-        use_container_width=True)
+        width="stretch")
 
 #--------------------------------------------------
     st.divider()
@@ -469,7 +469,7 @@ if Selected_line == "All":
     )
     st.plotly_chart(
             fig_scatter,
-            use_container_width=True
+            width="stretch"
         )
 
 # --------------------------------------Selected_line != "All" ---------------------------------------------------
@@ -517,7 +517,7 @@ if Selected_line != "All":
     Line_AvSpeed["Speed Loss(b/min)"]=(Line_AvSpeed["Effective Speed"]-(Line_AvSpeed["Line_Speed"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Target_Pr"])))
 
     st.subheader("⚡Effective Speed")
-    st.dataframe(Line_AvSpeed.round(1),use_container_width=True ,hide_index=True)
+    st.dataframe(Line_AvSpeed.round(1),width="stretch" ,hide_index=True)
 
     Line_SpeedDi = Lines_df[Lines_df["Line Speed"] > 0]
     Line_SpeedDi = Line_SpeedDi[Line_SpeedDi["Product"] > 0]
@@ -675,7 +675,7 @@ if Selected_line != "All":
                 yaxis_title="Coefficient of Variation (%)",
                 hovermode="x unified"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             Line_Std = Line_Std.dropna(subset=["%STD"])
             if not Line_Std.empty:
                 Lowest_Variation = Line_Std.loc[
@@ -756,7 +756,7 @@ if Selected_line != "All":
     )
     st.plotly_chart(
         fig,
-        use_container_width=True
+        width="stretch"
     )
     if len(Line_Stoppages) >= 2:
         top2 = Line_Stoppages.head(2)
@@ -801,7 +801,7 @@ if Selected_line != "All":
 
         st.plotly_chart(
             fig2,
-            use_container_width=True
+            width="stretch"
         )
 
         top_reason = reason_df.iloc[0]
@@ -848,7 +848,7 @@ if Selected_line != "All":
             height=350
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         selected_machine = st.selectbox(
             "🔍 Explore Equipment",
@@ -883,7 +883,7 @@ if Selected_line != "All":
 
         st.plotly_chart(
             fig2,
-            use_container_width=True
+            width="stretch"
         )
 
         with st.expander("📋 View Raw Stoppage Data"):
