@@ -884,13 +884,33 @@ if Selected_line != "All":
             .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
             .sort_values("Stoppage_Minute", ascending=False)
         )
+
         fig = px.bar(
-            equipment_df,
-            x="Reason",
-            y="Stoppage_Minute",
-            color="Reason",
-            text="Stoppage_Minute"
-        )
+    equipment_df,
+    x="Reason",
+    y="Stoppage_Minute",
+    color="Stoppage_Minute",
+    text="Stoppage_Minute"
+)
+
+fig.update_traces(
+    texttemplate="%{text:.0f}",
+    textposition="outside"
+)
+
+fig.update_layout(
+    template="plotly_dark",
+    height=450,
+    showlegend=False,
+    coloraxis_showscale=False,
+    bargap=0.25,
+    xaxis_tickangle=-35
+)
+
+st.plotly_chart(
+    fig,
+    width="stretch"
+)
 
         fig.update_layout(
             template="plotly_dark",
