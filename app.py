@@ -754,7 +754,7 @@ if Selected_line != "All":
 
     # -----------------------------------------------------------------------------------------------------------------
     st.subheader("🏭Where Did We Lose Time?")
-    st.subheader("🏭 Where Did We Lose Time?")
+    
 
 colors = px.colors.qualitative.Plotly
 
@@ -908,7 +908,7 @@ if len(Line_Stoppages) >= 2:
 
             st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-        st.subheader("🏭­ Which Reason Hurt Us Most?")
+        
         equipment_df = (
             Line_Stoppages_Detail
             .groupby("Reason", as_index=False)
