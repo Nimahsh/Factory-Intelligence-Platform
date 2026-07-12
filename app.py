@@ -632,7 +632,6 @@ if Selected_line != "All":
                     " Note: %STD = Line speed fluctuation coefficient")
             st.dataframe(Line_Std.round(1),hide_index=True)
 
-
     # ---------------- STD CHART ---------------- #
         with col2:
             fig = go.Figure()
@@ -745,8 +744,6 @@ if Selected_line != "All":
     # st.dataframe(Line_Stoppages , hide_index=True)
     Line_Stoppages_Detail = Line_Stoppages.copy()
 
-
-
     # st.subheader("Line Stoppages - DataFrame - Classification Base")
     Line_Stoppages= Line_Stoppages.groupby("Classification", as_index=False).agg(Stoppage_Minute=("Stoppage_Minute", "sum")).sort_values(by="Stoppage_Minute", ascending=False)
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
@@ -755,10 +752,9 @@ if Selected_line != "All":
     st.dataframe(Line_Stoppages.round(1) , hide_index=True)
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
 
-
-
     # -----------------------------------------------------------------------------------------------------------------
     st.subheader("🏭Where Did We Lose Time?")
+
     fig = px.bar(
         Line_Stoppages,
         x="Classification",
@@ -905,5 +901,3 @@ if Selected_line != "All":
         with st.expander("📋 View Raw Stoppage Data"):
 
             st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
-
-

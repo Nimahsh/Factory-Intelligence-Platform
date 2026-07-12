@@ -1,5 +1,0 @@
-[runner]
-fastReruns = false
-
-[server]
-fileWatcherType = "none"
