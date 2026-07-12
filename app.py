@@ -754,22 +754,52 @@ if Selected_line != "All":
 
     # -----------------------------------------------------------------------------------------------------------------
     st.subheader("🏭Where Did We Lose Time?")
-
-    fig = px.bar(
-        Line_Stoppages,
-        x="Classification",
-        y="Stoppage_Minute",
-        color="Classification",
-        text="Stoppage_Minute"
-    )
+    colors = px.colors.qualitative.Plotly
+    fig = go.Figure(
+    go.Bar(
+        x=Line_Stoppages["Classification"],
+        y=Line_Stoppages["Stoppage_Minute"],
+        text=Line_Stoppages["Stoppage_Minute"].round(0),
+        textposition="inside",
+        marker_color=[
+            colors[i % len(colors)]
+            for i in range(len(Line_Stoppages))
+            ],
+            width=0.75
+            )
+            )
     fig.update_layout(
         template="plotly_dark",
-        height=350
-    )
+        height=350,
+        showlegend=False,
+        bargap=0.15,
+        xaxis_title="Classification",
+        yaxis_title="Stoppage Minute"
+        )
+    
     st.plotly_chart(
         fig,
-        use_container_width=True
-    )
+        use_container_width=True,
+        key="classification_chart"
+        )
+
+    # fig = px.bar(
+    #     Line_Stoppages,
+    #     x="Classification",
+    #     y="Stoppage_Minute",
+    #     color="Classification",
+    #     text="Stoppage_Minute"
+    # )
+    # fig.update_layout(
+    #     template="plotly_dark",
+    #     height=350,
+    #     barmode="overlay",
+    #     bargap=0.20
+    #     )
+    # st.plotly_chart(
+    #     fig,
+    #     use_container_width=True
+    # )
     if len(Line_Stoppages) >= 2:
         top2 = Line_Stoppages.head(2)
         share = top2["Share%"].sum()
@@ -847,20 +877,50 @@ if Selected_line != "All":
             .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
             .sort_values("Stoppage_Minute", ascending=False)
         )
-        fig = px.bar(
-            equipment_df,
-            x="Reason",
-            y="Stoppage_Minute",
-            color="Reason",
-            text="Stoppage_Minute"
-        )
-
+        colors = px.colors.qualitative.Plotly
+        fig = go.Figure(
+            go.Bar(
+                x=equipment_df["Reason"],
+                y=equipment_df["Stoppage_Minute"],
+                text=equipment_df["Stoppage_Minute"].round(0),
+                textposition="inside",
+                marker_color=[
+                    colors[i % len(colors)]
+                    for i in range(len(equipment_df))
+                    ],
+                    width=0.75
+                    )
+                    )
         fig.update_layout(
             template="plotly_dark",
-            height=350
-        )
+            height=350,
+            showlegend=False,
+            bargap=0.15,
+            xaxis_title="Reason",
+            yaxis_title="Stoppage Minute",
+            xaxis_tickangle=-35
+            )
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key="equipment_chart"
+            )
+        # fig = px.bar(
+        #     equipment_df,
+        #     x="Reason",
+        #     y="Stoppage_Minute",
+        #     color="Reason",
+        #     text="Stoppage_Minute"
+        # )
 
-        st.plotly_chart(fig, use_container_width=True)
+        # fig.update_layout(
+        #     template="plotly_dark",
+        #     height=350,
+        #     barmode="overlay",
+        #     bargap=0.20
+        #     )
+
+        # st.plotly_chart(fig, use_container_width=True)
 
         selected_machine = st.selectbox(
             "🔍 Explore Equipment",
