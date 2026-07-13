@@ -801,136 +801,134 @@ if Selected_line != "All":
     #----------------------------------------------------------------
 
 selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
+detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
+st.subheader(f"Details of {selected_class}: ")
 
-        detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
+    # st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
-        st.subheader(f"Details of {selected_class}: ")
+    reason_df = (detail_df.groupby("Reason", as_index=False).agg(Minute=("Stoppage_Minute", "sum")).sort_values( "Minute",ascending=False))
 
-        # st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+    fig2 = px.bar(
+        reason_df,
 
-        reason_df = (detail_df.groupby("Reason", as_index=False).agg(Minute=("Stoppage_Minute", "sum")).sort_values( "Minute",ascending=False))
+        y="Reason",
+        x="Minute",
 
-        fig2 = px.bar(
-            reason_df,
+        orientation="h",
 
-            y="Reason",
+        text="Minute",
+
+        color="Minute"
+    )
+
+    fig2.update_layout(
+        template="plotly_dark",
+        height=400,
+        showlegend=False
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
+
+    top_reason = reason_df.iloc[0]
+
+    share_reason = (top_reason["Minute"]/reason_df["Minute"].sum())*100
+
+    st.info(
+        f"""
+    🤖 AI Insight
+
+    Inside {selected_class},
+
+    {top_reason['Reason']} is the dominant source of downtime.
+
+    Impact:
+    {share_reason:.1f}% of all losses in this category.
+
+    Recommended focus:
+    Investigate this issue first.
+    """
+    )
+
+    with st.expander("📋 View Raw Stoppage Data"):
+
+        st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+
+    
+    equipment_df = (
+        Line_Stoppages_Detail
+        .groupby("Reason", as_index=False)
+        .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
+        .sort_values("Stoppage_Minute", ascending=False)
+    )
+
+    st.subheader("🏭 Which Reason Hurt Us Most?")
+    equipment_df = (
+        Line_Stoppages_Detail
+        .groupby("Reason", as_index=False)
+        .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
+        .sort_values("Stoppage_Minute", ascending=False)
+    )
+    colors = px.colors.qualitative.Plotly
+    fig = go.Figure()
+    for i, row in equipment_df.reset_index(drop=True).iterrows():
+        fig.add_trace(
+            go.Bar(
+                x=[row["Reason"]],
+                y=[row["Stoppage_Minute"]],
+                name=row["Reason"],
+                text=[round(row["Stoppage_Minute"])],
+                textposition="inside",
+                marker_color=colors[i % len(colors)],
+                width=0.75
+            )
+        )
+    fig.update_layout(
+            template="plotly_dark",
+            height=430,
+            barmode="overlay",bargap=0.15,
+            showlegend=True,
+            legend_title_text="Reason",
+            xaxis_title="Reason",
+            yaxis_title="Stoppage Minute",
+            xaxis_tickangle=-35
+        )
+    st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key="equipment_reason_chart"
+        )
+    selected_machine = st.selectbox(
+        "🔍 Explore Equipment",
+        equipment_df["Reason"]
+    )
+    machine_detail = Line_Stoppages_Detail[
+        Line_Stoppages_Detail["Reason"] == selected_machine
+        ]
+    machine_loss = (
+            machine_detail
+            .groupby("Classification", as_index=False)
+            .agg(Minute=("Stoppage_Minute", "sum"))
+            .sort_values("Minute", ascending=False)
+        )
+    fig2 = px.bar(
+            machine_loss,
+            y="Classification",
             x="Minute",
-
             orientation="h",
-
             text="Minute",
-
             color="Minute"
         )
-
         fig2.update_layout(
             template="plotly_dark",
             height=400,
             showlegend=False
         )
-
-        st.plotly_chart(
+    st.plotly_chart(
             fig2,
             use_container_width=True
         )
-
-        top_reason = reason_df.iloc[0]
-
-        share_reason = (top_reason["Minute"]/reason_df["Minute"].sum())*100
-
-        st.info(
-            f"""
-        🤖 AI Insight
-    
-        Inside {selected_class},
-    
-        {top_reason['Reason']} is the dominant source of downtime.
-    
-        Impact:
-        {share_reason:.1f}% of all losses in this category.
-    
-        Recommended focus:
-        Investigate this issue first.
-        """
-        )
-
-        with st.expander("📋 View Raw Stoppage Data"):
-
-            st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
-
-        
-        equipment_df = (
-            Line_Stoppages_Detail
-            .groupby("Reason", as_index=False)
-            .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
-            .sort_values("Stoppage_Minute", ascending=False)
-        )
-
-        st.subheader("🏭 Which Reason Hurt Us Most?")
-        equipment_df = (
-            Line_Stoppages_Detail
-            .groupby("Reason", as_index=False)
-            .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
-            .sort_values("Stoppage_Minute", ascending=False)
-        )
-        colors = px.colors.qualitative.Plotly
-        fig = go.Figure()
-        for i, row in equipment_df.reset_index(drop=True).iterrows():
-            fig.add_trace(
-                go.Bar(
-                    x=[row["Reason"]],
-                    y=[row["Stoppage_Minute"]],
-                    name=row["Reason"],
-                    text=[round(row["Stoppage_Minute"])],
-                    textposition="inside",
-                    marker_color=colors[i % len(colors)],
-                    width=0.75
-                )
-            )
-        fig.update_layout(
-                template="plotly_dark",
-                height=430,
-                barmode="overlay",bargap=0.15,
-                showlegend=True,
-                legend_title_text="Reason",
-                xaxis_title="Reason",
-                yaxis_title="Stoppage Minute",
-                xaxis_tickangle=-35
-            )
-        st.plotly_chart(
-                fig,
-                use_container_width=True,
-                key="equipment_reason_chart"
-            )
-        selected_machine = st.selectbox(
-            "🔍 Explore Equipment",
-            equipment_df["Reason"]
-        )
-        machine_detail = Line_Stoppages_Detail[
-            Line_Stoppages_Detail["Reason"] == selected_machine
-            ]
-        machine_loss = (
-                machine_detail
-                .groupby("Classification", as_index=False)
-                .agg(Minute=("Stoppage_Minute", "sum"))
-                .sort_values("Minute", ascending=False)
-            )
-        fig2 = px.bar(
-                machine_loss,
-                y="Classification",
-                x="Minute",
-                orientation="h",
-                text="Minute",
-                color="Minute"
-            )
-            fig2.update_layout(
-                template="plotly_dark",
-                height=400,
-                showlegend=False
-            )
-        st.plotly_chart(
-                fig2,
-                use_container_width=True
-            )
-        with st.expander("📋 View Raw Stoppage Data"):
-                st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+    with st.expander("📋 View Raw Stoppage Data"):
+            st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
