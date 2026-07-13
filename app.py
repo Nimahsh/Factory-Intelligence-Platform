@@ -759,7 +759,7 @@ if Selected_line != "All":
     colors = px.colors.qualitative.Plotly
     fig = go.Figure()
     for i, row in Line_Stoppages.reset_index(drop=True).iterrows():
-    fig.add_trace(
+        fig.add_trace(
             go.Bar(
             x=[row["Classification"]],
             y=[row["Stoppage_Minute"]],
