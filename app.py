@@ -853,8 +853,7 @@ Investigate this issue first.
 )
 
 with st.expander("📋 View Raw Stoppage Data"):
-
-st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
+    st.dataframe(detail_df.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
 
 
 equipment_df = (
