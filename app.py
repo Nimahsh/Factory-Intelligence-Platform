@@ -787,18 +787,20 @@ if Selected_line != "All":
             key="classification_chart"
         )
     if len(Line_Stoppages) >= 2:
-            top2 = Line_Stoppages.head(2)
-            share = top2["Share%"].sum()
-            st.success(
-                f"""
-                🤖  AI Insight: 
-                Total stoppages time is equal to {total_loss.round(0)} minutes
-                , {share:.1f}% of all losses originated from {top2.iloc[0]['Classification']} and {top2.iloc[1]['Classification']}.
-                """)
+        top2 = Line_Stoppages.head(2)
+        share = top2["Share%"].sum()
+        st.success(
+            f"""
+            🤖 AI Insight:
+            Total stoppages time is equal to {total_loss.round(0)} minutes
+            , {share:.1f}% of all losses originated from 
+            {top2.iloc[0]['Classification']} and {top2.iloc[1]['Classification']}.
+            """
+        )
 
     #----------------------------------------------------------------
 
-        selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
+selected_class = st.selectbox("🔍 Explore Classification",Line_Stoppages["Classification"])
 
         detail_df = Line_Stoppages_Detail[Line_Stoppages_Detail["Classification"] == selected_class]
 
@@ -913,7 +915,7 @@ if Selected_line != "All":
                 .agg(Minute=("Stoppage_Minute", "sum"))
                 .sort_values("Minute", ascending=False)
             )
-            fig2 = px.bar(
+        fig2 = px.bar(
                 machine_loss,
                 y="Classification",
                 x="Minute",
