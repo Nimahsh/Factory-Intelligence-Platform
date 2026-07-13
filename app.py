@@ -27,8 +27,9 @@ Product_map= {
     1113140 : { "line_name" : "Serac 2" , "line_speed" : 205 , "Target_Pr" : 0.85,"name": "0.810Kg Ladan", "Weight": 810, "Pack": 12},
     1215138 : { "line_name" : "Serac 2" , "line_speed" : 205 , "Target_Pr" : 0.85,"name": "0.810Kg Frying", "Weight": 810, "Pack": 12},
     1317072 : { "line_name" : "Serac 2" , "line_speed" : 240 , "Target_Pr" : 0.85,"name": "0.675Kg Nastaran", "Weight": 675, "Pack": 12},
-    1113144 : { "line_name" : "Serac 2" , "line_speed" : 37 , "Target_Pr" : 0.85,"name" : "0.810Kg Ladan" , "Weight" : 810 , "Pack" : 12},
-    1113142 : { "line_name" : "Serac 2" , "line_speed" : 37 , "Target_Pr" : 0.85,"name" : "0.810Kg Ladan" , "Weight" : 810 , "Pack" : 12},
+    1113144 : { "line_name" : "Serac 2" , "line_speed" : 205 , "Target_Pr" : 0.85,"name" : "0.810Kg Ladan" , "Weight" : 810 , "Pack" : 12},
+    1113142 : { "line_name" : "Serac 2" , "line_speed" : 205 , "Target_Pr" : 0.85,"name" : "0.810Kg Ladan" , "Weight" : 810 , "Pack" : 12},
+    1116142 : { "line_name" : "Serac 2" , "line_speed" : 205 , "Target_Pr" : 0.85,"name": "0.810Kg Canola" , "Weight": 810 , "Pack": 12},
     1113410 : { "line_name" : "Kosheshkaran" , "line_speed" : 37 , "Target_Pr" : 0.85,"name": "2.7Kg Ladan", "Weight": 2700, "Pack": 4},
     1215404 : { "line_name" : "Kosheshkaran" , "line_speed" : 37 , "Target_Pr" : 0.85,"name": "2.7Kg Almas", "Weight": 2700, "Pack": 4},
 }
