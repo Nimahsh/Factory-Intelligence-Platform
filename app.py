@@ -900,14 +900,14 @@ if Selected_line != "All":
                 use_container_width=True,
                 key="equipment_reason_chart"
             )
-            selected_machine = st.selectbox(
-                "🔍 Explore Equipment",
-                equipment_df["Reason"]
-            )
-            machine_detail = Line_Stoppages_Detail[
+        selected_machine = st.selectbox(
+            "🔍 Explore Equipment",
+            equipment_df["Reason"]
+        )
+        machine_detail = Line_Stoppages_Detail[
             Line_Stoppages_Detail["Reason"] == selected_machine
             ]
-            machine_loss = (
+        machine_loss = (
                 machine_detail
                 .groupby("Classification", as_index=False)
                 .agg(Minute=("Stoppage_Minute", "sum"))
@@ -926,9 +926,9 @@ if Selected_line != "All":
                 height=400,
                 showlegend=False
             )
-            st.plotly_chart(
+        st.plotly_chart(
                 fig2,
                 use_container_width=True
             )
-            with st.expander("📋 View Raw Stoppage Data"):
+        with st.expander("📋 View Raw Stoppage Data"):
                 st.dataframe(machine_detail.sort_values("Stoppage_Minute",ascending=False),hide_index=True)
