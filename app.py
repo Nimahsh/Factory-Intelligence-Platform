@@ -522,7 +522,7 @@ if Selected_line != "All":
 
     Line_AvSpeed["Speed Loss(b/min)"]=(Line_AvSpeed["Effective Speed"]-(Line_AvSpeed["Line_Speed"]*Line_Plan["Product Code"].map(lambda x: Product_map[x]["Target_Pr"])))
 
-
+    st.divider()
     st.subheader("⚡Effective Speed")
     st.dataframe(Line_AvSpeed.round(1),use_container_width=True ,hide_index=True)
 
@@ -549,13 +549,13 @@ if Selected_line != "All":
     total_time = Line_Plan["Working_Time"].sum()
     plan_coverage = (total_ton / total_plan) * 100
 
-
+    st.divider()
     col1, col2, col3 ,col4 ,col5 , col6 = st.columns(6)
     col2.metric("Total Working Time", f"{total_time:.0f}")
     col3.metric("Production (Ton)", f"{total_ton:.1f}")
     col4.metric("Plan Coverage %", f"{plan_coverage:.1f}")
     col5.metric("Line Performance%", f"{Line_PR:.1f}")
-
+    st.divider()
 
     # ---------------- SHIFT Stability ---------------- #
     Line_SpeedDi["PR%"] = (Line_SpeedDi["Bottle"] / (Line_SpeedDi["Time"] * Line_SpeedDi["Line Speed"])) * 100
@@ -701,6 +701,7 @@ if Selected_line != "All":
             f"{Lowest_Variation} ({worst_std:.1f}%). "
             f"This product shows the highest process instability and may require investigation."
         )
+        st.divider()
         Stable_percent = (Line_Stability["Stable Shift"].sum() / Line_Stability["Total Shift"].sum()) * 100
         best_product = Line_Plan.loc[Line_Plan["Pr%"].idxmax(),"Product Name"]
         col1, col2, col3, col4 = st.columns(4)
@@ -712,7 +713,7 @@ if Selected_line != "All":
             st.metric("Stable Product",f"{Line_Std.loc[Line_Std["%STD"].idxmin(),"Product Name"]}")
         with col4:
             st.metric("Best Performance",f"{best_product}")
-
+st.divider()
 
 df_stoppage = pd.read_excel(address_code)
 stoppage_map = {
@@ -753,6 +754,7 @@ if Selected_line != "All":
     total_loss = Line_Stoppages["Stoppage_Minute"].sum()
 
     # -----------------------------------------------------------------------------------------------------------------
+    st.divider()
     st.subheader("🏭Where Did We Lose Time?")
     
 
@@ -862,7 +864,7 @@ if Selected_line != "All":
     .agg(Stoppage_Minute=("Stoppage_Minute", "sum"))
     .sort_values("Stoppage_Minute", ascending=False)
     )
-    
+    st.divider()
     st.subheader("🏭 Which Reason Hurt Us Most?")
     equipment_df = (
     Line_Stoppages_Detail
