@@ -759,7 +759,7 @@ if Selected_line != "All":
     colors = px.colors.qualitative.Plotly
     fig = go.Figure()
     for i, row in Line_Stoppages.reset_index(drop=True).iterrows():
-        fig.add_trace(
+    fig.add_trace(
             go.Bar(
             x=[row["Classification"]],
             y=[row["Stoppage_Minute"]],
@@ -770,7 +770,7 @@ if Selected_line != "All":
             width=0.75
             )
         )
-        fig.update_layout(
+    fig.update_layout(
             template="plotly_dark",
             height=400,
             barmode="overlay",
@@ -781,12 +781,12 @@ if Selected_line != "All":
             yaxis_title="Stoppage Minute",
             xaxis_tickangle=-25
         )
-        st.plotly_chart(
+    st.plotly_chart(
             fig,
             use_container_width=True,
             key="classification_chart"
         )
-        if len(Line_Stoppages) >= 2:
+    if len(Line_Stoppages) >= 2:
             top2 = Line_Stoppages.head(2)
             share = top2["Share%"].sum()
             st.success(
@@ -885,7 +885,7 @@ if Selected_line != "All":
                     width=0.75
                 )
             )
-            fig.update_layout(
+        fig.update_layout(
                 template="plotly_dark",
                 height=430,
                 barmode="overlay",bargap=0.15,
@@ -895,7 +895,7 @@ if Selected_line != "All":
                 yaxis_title="Stoppage Minute",
                 xaxis_tickangle=-35
             )
-            st.plotly_chart(
+        st.plotly_chart(
                 fig,
                 use_container_width=True,
                 key="equipment_reason_chart"
