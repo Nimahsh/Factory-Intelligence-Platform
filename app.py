@@ -873,7 +873,7 @@ Line_Stoppages_Detail
 colors = px.colors.qualitative.Plotly
 fig = go.Figure()
 for i, row in equipment_df.reset_index(drop=True).iterrows():
-fig.add_trace(
+    fig.add_trace(
     go.Bar(
         x=[row["Reason"]],
         y=[row["Stoppage_Minute"]],
